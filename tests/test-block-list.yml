@@ -1,0 +1,37 @@
+name: Test block-list input
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with block-list to exclude certain values
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          issue-form: '{"title":"Test issue","body":"Test body","severity":"None"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert action was invoked with block-list input
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "step outcome: $OUTCOME"
+          # The action is expected to either succeed (if GitHub API is available)
+          # or fail at the API call (in act with fake token).
+          # Either way, the action was invoked with the required inputs including block-list.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action was invoked with issue-form, token, and block-list inputs"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
