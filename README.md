@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v3.2.3 | [`v3.2.3`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.3) | [`e38e680`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/e38e6809c5420d038eed380d49ee9a6ca7c92dbf) |
+| v3.2.4 | [`v3.2.4`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.4) | [`b80ae64`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/b80ae64e3e156e9c111b075bfa04b295d54e8e2e) |
 
 ## Privacy
 
