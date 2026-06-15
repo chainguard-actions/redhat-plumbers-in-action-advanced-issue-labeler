@@ -1,0 +1,50 @@
+name: Test block-list excludes values from labeling
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run advanced-issue-labeler with multiple blocked values
+        id: labeler
+        uses: .
+        with:
+          # issue-form JSON: severity=Other (which is in the block-list)
+          issue-form: '{"severity":"Other","component":"None"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          # Non-existent config path so config returns null, falling back to section input
+          config-path: .github/advanced-issue-labeler-nonexistent.yml
+          token: ${{ github.token }}
+
+      - name: Assert labels output is empty array when all values are blocked
+        env:
+          LABELS: ${{ steps.labeler.outputs.labels }}
+        run: |
+          echo "labels: $LABELS"
+          if [ "$LABELS" != "[]" ]; then
+            echo "FAIL: expected labels to be '[]' when all values are blocked, got '$LABELS'"
+            exit 1
+          fi
+          echo "PASS: labels is empty array as expected"
+
+      - name: Assert policy output is valid JSON
+        env:
+          POLICY: ${{ steps.labeler.outputs.policy }}
+        run: |
+          echo "policy: $POLICY"
+          if [ -z "$POLICY" ]; then
+            echo "FAIL: expected policy output to be non-empty"
+            exit 1
+          fi
+          # Verify it's valid JSON
+          echo "$POLICY" | python3 -c "import sys, json; json.load(sys.stdin)" || {
+            echo "FAIL: policy output is not valid JSON"
+            exit 1
+          }
+          echo "PASS: policy output is valid JSON"

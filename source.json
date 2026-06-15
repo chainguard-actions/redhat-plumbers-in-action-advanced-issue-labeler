@@ -1,6 +1,11 @@
 {
   "owner": "redhat-plumbers-in-action",
   "repo": "advanced-issue-labeler",
-  "version": "",
-  "url": "https://github.com/redhat-plumbers-in-action/advanced-issue-labeler"
+  "version": "v3.2.4",
+  "commit_sha": "b80ae64e3e156e9c111b075bfa04b295d54e8e2e",
+  "url": "https://github.com/redhat-plumbers-in-action/advanced-issue-labeler",
+  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "1",
+  "harden_agent_version": "1"
 }
