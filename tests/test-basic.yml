@@ -1,0 +1,61 @@
+name: Test basic issue labeling
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: issues
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture config to expected location
+        run: |
+          mkdir -p .github
+          cp "$GITHUB_WORKSPACE/actions/hardened/redhat-plumbers-in-action--advanced-issue-labeler/v3.2.1/tests/fixtures/advanced-issue-labeler.yml" \
+             .github/advanced-issue-labeler.yml
+
+      - id: action
+        uses: .
+        with:
+          issue-form: |
+            [
+              {
+                "type": "dropdown",
+                "id": "type-of-issue",
+                "attributes": {
+                  "label": "Type of issue",
+                  "options": ["Bug", "Feature Request", "Question"]
+                },
+                "validations": {
+                  "required": true
+                },
+                "value": "Bug"
+              }
+            ]
+          template: default
+          section: "Type of issue"
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert labels output is set
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+        run: |
+          echo "labels: $LABELS"
+          if [ -z "$LABELS" ]; then
+            echo "FAIL: expected labels output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: labels output is set"
+
+      - name: Assert policy output is set
+        env:
+          POLICY: ${{ steps.action.outputs.policy }}
+        run: |
+          echo "policy: $POLICY"
+          if [ -z "$POLICY" ]; then
+            echo "FAIL: expected policy output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: policy output is set"

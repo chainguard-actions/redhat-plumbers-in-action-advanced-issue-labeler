@@ -1,0 +1,10 @@
+policy:
+  - id: default
+    section: "Type of issue"
+    labels:
+      - id: "Bug"
+        label: bug
+      - id: "Feature Request"
+        label: enhancement
+      - id: "Question"
+        label: question
