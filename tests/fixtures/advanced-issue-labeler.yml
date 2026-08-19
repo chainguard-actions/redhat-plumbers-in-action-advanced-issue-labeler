@@ -1,0 +1,18 @@
+policy:
+  - section:
+      - id: [severity]
+        block-list: ['None', 'Other']
+        label:
+          - name: 'severity: high'
+            keys: ['High']
+          - name: 'severity: medium'
+            keys: ['Medium']
+          - name: 'severity: low'
+            keys: ['Low']
+      - id: [type]
+        block-list: ['Other']
+        label:
+          - name: 'bug'
+            keys: ['Bug Report']
+          - name: 'enhancement'
+            keys: ['Feature Request']

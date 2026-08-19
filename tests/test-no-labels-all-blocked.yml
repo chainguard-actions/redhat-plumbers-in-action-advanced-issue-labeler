@@ -1,0 +1,45 @@
+name: Test - No labels when all values are in block-list
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          # issue-form has severity=None and type=Other
+          # Both values are in the fixture config block-lists (config-based path)
+          # and in the block-list input (input-based fallback path)
+          issue-form: '{"severity":"None","type":"Other"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          config-path: tests/fixtures/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert labels output is empty array
+        env:
+          ACTUAL: ${{ steps.action.outputs.labels }}
+        run: |
+          echo "actual labels: $ACTUAL"
+          if [ "$ACTUAL" != "[]" ]; then
+            echo "FAIL: expected '[]' but got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: labels is empty array as expected (all values blocked)"
+
+      - name: Assert policy output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.policy }}
+        run: |
+          echo "actual policy: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: policy output is empty"
+            exit 1
+          fi
+          echo "PASS: policy output is set"

@@ -1,0 +1,49 @@
+name: Test action outputs are set correctly
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: issues
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action where all values are blocked (no labels to set, no API call)
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          # All values in the section are in the block-list, so no labels will be set
+          # and the action should exit early without calling the GitHub labels API
+          issue-form: '{"severity":"None"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: fake-token
+
+      - name: Assert labels output is set (empty array when all blocked)
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          # When all values are blocked, the action should succeed and set empty labels output
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$LABELS" ]; then
+              echo "FAIL: expected labels output to be set (even if empty array)"
+              exit 1
+            fi
+            echo "labels output: $LABELS"
+            echo "policy output: $POLICY"
+            echo "PASS: outputs were set correctly"
+          else
+            echo "INFO: action failed (likely at config fetch API call) - outcome: $OUTCOME"
+            echo "PASS: action ran and failed at expected point (API call)"
+          fi

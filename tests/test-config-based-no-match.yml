@@ -1,0 +1,43 @@
+name: Test - Config-based labeling with no matching keys
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          # issue-form has severity=Unknown and type=Unknown which don't match any label key in the config
+          issue-form: '{"severity":"Unknown","type":"Unknown"}'
+          # section and block-list are fallback inputs for input-based labeling
+          # (used when config is null, e.g. fixture not on default branch)
+          section: severity
+          block-list: Unknown
+          config-path: tests/fixtures/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert labels output is empty array
+        env:
+          ACTUAL: ${{ steps.action.outputs.labels }}
+        run: |
+          echo "actual labels: $ACTUAL"
+          if [ "$ACTUAL" != "[]" ]; then
+            echo "FAIL: expected '[]' but got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: labels is empty array as expected (no matching keys in config)"
+
+      - name: Assert policy output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.policy }}
+        run: |
+          echo "actual policy: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: policy output is empty"
+            exit 1
+          fi
+          echo "PASS: policy output is set"
