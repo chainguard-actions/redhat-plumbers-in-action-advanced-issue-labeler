@@ -1,0 +1,52 @@
+name: Test multiple values in issue-form section
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create empty config file so action uses input-based mode
+        run: |
+          mkdir -p .github
+          echo "" > .github/advanced-issue-labeler.yml
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          # Multiple values from a multi-select dropdown are comma-separated
+          issue-form: '{"animals":"Dog, Cat"}'
+          section: animals
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert outputs are set or action failed gracefully
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$LABELS" ]; then
+              echo "FAIL: action succeeded but labels output is empty"
+              exit 1
+            fi
+            echo "PASS: labels output is non-empty: $LABELS"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

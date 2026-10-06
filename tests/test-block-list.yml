@@ -1,0 +1,45 @@
+name: Test block-list excludes values from labeling
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create empty config file so action uses input-based mode
+        run: |
+          mkdir -p .github
+          echo "" > .github/advanced-issue-labeler.yml
+
+      - id: action
+        uses: .
+        # When all values are blocked, no labels are set and no API call is made
+        # so this should succeed even on the sentinel repo
+        with:
+          issue-form: '{"severity":"None"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert labels output is empty (blocked value excluded)
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+        run: |
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          # When all values are in the block-list, labels should be empty array
+          if [ "$LABELS" = "[]" ] || [ -z "$LABELS" ]; then
+            echo "PASS: labels output is empty as expected (blocked value excluded)"
+          else
+            echo "FAIL: expected empty labels but got: $LABELS"
+            exit 1
+          fi

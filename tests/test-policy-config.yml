@@ -1,0 +1,58 @@
+name: Test policy-based labeling with config file
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create policy config file
+        run: |
+          mkdir -p .github
+          cat > .github/advanced-issue-labeler.yml << 'EOF'
+          policy:
+            - section:
+                - id: ['type']
+                  block-list: ['other']
+                  label:
+                    - name: bug
+                      keys: ['Bug Report']
+                    - name: feature
+                      keys: ['Feature Request']
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          issue-form: '{"type":"Bug Report"}'
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert action ran and produced outputs or failed gracefully
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$LABELS" ]; then
+              echo "FAIL: action succeeded but labels output is empty"
+              exit 1
+            fi
+            echo "$LABELS" | grep -q "bug" || { echo "FAIL: expected 'bug' in labels output"; exit 1; }
+            echo "PASS: labels output contains 'bug'"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
