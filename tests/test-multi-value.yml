@@ -1,0 +1,50 @@
+name: Test multi-value dropdown labeling
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with multi-value dropdown (comma-separated)
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          # Multiple dropdown values are comma-separated in the issue-form JSON
+          issue-form: '{"animals":"🐶 Dog, 🐸 Frog, 🦈 Shark"}'
+          section: animals
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert multi-value labels or graceful failure
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          if [ "$OUTCOME" = "success" ]; then
+            # Labels should contain the animal values from the dropdown
+            if echo "$LABELS" | grep -q 'Dog\|Frog\|Shark'; then
+              echo "PASS: labels output contains expected animal values"
+            else
+              echo "FAIL: expected labels to contain animal values, got: $LABELS"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

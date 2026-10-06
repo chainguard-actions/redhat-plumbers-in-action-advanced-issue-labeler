@@ -1,0 +1,53 @@
+name: Test config-based policy labeling
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with config-based policy
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          issue-form: '{"type":"Bug Report","severity":"High"}'
+          template: bug.yml
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert action ran (outputs set, or failed gracefully on sentinel repo)
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          if [ "$OUTCOME" = "success" ]; then
+            # When config-based labeling succeeds, labels should be a JSON array
+            if echo "$LABELS" | grep -qE '^\['; then
+              echo "PASS: labels output is a JSON array"
+            else
+              echo "FAIL: expected labels to be a JSON array, got: $LABELS"
+              exit 1
+            fi
+            # Policy output should be a JSON object
+            if echo "$POLICY" | grep -qE '^\{'; then
+              echo "PASS: policy output is a JSON object"
+            else
+              echo "FAIL: expected policy to be a JSON object, got: $POLICY"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

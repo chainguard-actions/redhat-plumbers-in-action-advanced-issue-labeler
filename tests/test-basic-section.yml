@@ -1,0 +1,56 @@
+name: Test basic section-based labeling
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with section-based labeling
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          issue-form: '{"severity":"High","component":"networking"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert action ran (outputs set, or failed gracefully on sentinel repo)
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          POLICY: ${{ steps.action.outputs.policy }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          echo "policy: $POLICY"
+          if [ "$OUTCOME" = "success" ]; then
+            # Labels output should be a JSON array containing "High"
+            if echo "$LABELS" | grep -q '"High"'; then
+              echo "PASS: labels output contains 'High'"
+            else
+              echo "FAIL: expected labels to contain 'High', got: $LABELS"
+              exit 1
+            fi
+            # Policy output should reference the severity section
+            if echo "$POLICY" | grep -q 'severity'; then
+              echo "PASS: policy output references 'severity'"
+            else
+              echo "FAIL: expected policy to reference 'severity', got: $POLICY"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

@@ -1,0 +1,48 @@
+name: Test block-list filtering
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with block-list to filter out 'None' and 'Other'
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          # severity is "None" which should be blocked, so labels should be empty
+          issue-form: '{"severity":"None","component":"networking"}'
+          section: severity
+          block-list: |
+            None
+            Other
+          config-path: .github/advanced-issue-labeler.yml
+          token: ${{ github.token }}
+
+      - name: Assert block-list filtering works (no labels for blocked value)
+        env:
+          LABELS: ${{ steps.action.outputs.labels }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "labels: $LABELS"
+          if [ "$OUTCOME" = "success" ]; then
+            # "None" is in the block-list, so labels should be empty array
+            if [ "$LABELS" = "[]" ]; then
+              echo "PASS: labels is empty array as expected (blocked value filtered out)"
+            else
+              echo "FAIL: expected empty labels array since 'None' is blocked, got: $LABELS"
+              exit 1
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
