@@ -6,11 +6,11 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v3.2.1 | [`v3.2.1`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.1) | [`39087a4`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/39087a4b30cb98d57f25f34d617a6af8163c17d9) |
-| v3.2.3 | [`v3.2.3`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.3) | [`e38e680`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/e38e6809c5420d038eed380d49ee9a6ca7c92dbf) |
-| v3.2.4 | [`v3.2.4`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.4) | [`b80ae64`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/b80ae64e3e156e9c111b075bfa04b295d54e8e2e) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v3.2.1 | [`v3.2.1`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.1) | [`39087a4`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/39087a4b30cb98d57f25f34d617a6af8163c17d9) | [`HARDENING.md`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/blob/v3.2.1/HARDENING.md) |
+| v3.2.3 | [`v3.2.3`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.3) | [`e38e680`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/e38e6809c5420d038eed380d49ee9a6ca7c92dbf) | [`HARDENING.md`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/blob/v3.2.3/HARDENING.md) |
+| v3.2.4 | [`v3.2.4`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/tree/v3.2.4) | [`b80ae64`](https://github.com/redhat-plumbers-in-action/advanced-issue-labeler/commit/b80ae64e3e156e9c111b075bfa04b295d54e8e2e) | [`HARDENING.md`](https://github.com/chainguard-actions/redhat-plumbers-in-action-advanced-issue-labeler/blob/v3.2.4/HARDENING.md) |
 
 ## Privacy
 
